@@ -29,8 +29,8 @@ MODEL_PATH="${MODEL_PATH:-/path/to/your/model}"
 TRAIN_FILE="${PROJECT_ROOT}/data/train.parquet"
 VAL_FILE="${PROJECT_ROOT}/data/val.parquet"
 
-# Verl installation path - modify this to point to your verl installation
-VERL_DIR="${VERL_DIR:-/path/to/verl}"
+# Verl installation path - defaults to the sibling verl checkout in this workspace
+VERL_DIR="${VERL_DIR:-${PROJECT_ROOT}/../verl}"
 
 # Sequence length configuration
 # Optimized: prompt reduced to actual max, response increased to reduce truncation
@@ -73,7 +73,7 @@ PROJECT_NAME="dapo-training"
 # Training steps
 # Adjust based on your dataset size
 total_steps=2010
-save_steps=670
+save_steps=500
 
 # ==================== Environment Variables ====================
 export PYTHONPATH="${VERL_DIR}:${PROJECT_ROOT}/reward:$PYTHONPATH"
@@ -91,10 +91,14 @@ trap cleanup EXIT INT TERM
 
 # ==================== Activate Environment ====================
 echo "Activating environment..."
-# Modify this based on your environment setup
-if [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then
-    source /opt/conda/etc/profile.d/conda.sh
-    conda activate verl
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-ig_pipeline}"
+if [ "${CONDA_DEFAULT_ENV:-}" = "${CONDA_ENV_NAME}" ]; then
+    echo "Using existing conda environment: ${CONDA_DEFAULT_ENV}"
+elif [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then
+    source "/opt/conda/etc/profile.d/conda.sh"
+    conda activate "${CONDA_ENV_NAME}"
+else
+    echo "WARNING: conda.sh not found; continuing without environment activation"
 fi
 
 # ==================== Training Function ====================

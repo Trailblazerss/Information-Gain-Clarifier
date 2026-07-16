@@ -18,8 +18,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, SCRIPT_DIR)
 
-# VERL_DIR should be set via environment variable or modified here
-VERL_DIR = os.environ.get("VERL_DIR", "/path/to/verl")
+# VERL_DIR should be set via environment variable or defaults to the sibling checkout
+VERL_DIR = os.environ.get("VERL_DIR", os.path.abspath(os.path.join(PROJECT_ROOT, "..", "verl")))
 sys.path.insert(0, VERL_DIR)
 
 import ray
