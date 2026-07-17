@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor
 
 # ============================================================
@@ -340,6 +340,7 @@ def log_complete_step_data(
     rewards: List[float],
     selected_indices: List[int],
     valid_orig_indices: List[int] = None,
+    response_records: Optional[List[Optional[Dict[str, Any]]]] = None,
 ) -> None:
     """
     Save complete step data to JSON file (only first MAX_LOG_STEPS steps)
@@ -348,6 +349,7 @@ def log_complete_step_data(
               log_prob with/without QA, reward
     """
     global _QUESTION_LOG_STEP
+    response_records = response_records or []
     
     # Only log first MAX_LOG_STEPS steps
     if step > MAX_LOG_STEPS:
@@ -380,8 +382,16 @@ def log_complete_step_data(
     
     # First set user_response for all selected_indices
     for local_idx, orig_idx in enumerate(selected_indices):
+        record = response_records[local_idx] if local_idx < len(response_records) else None
+        if not isinstance(record, dict):
+            record = {}
         selected_data_map[orig_idx] = {
             "user_response": user_responses[local_idx] if local_idx < len(user_responses) else None,
+            "response_role": record.get("response_role"),
+            "response_mode": record.get("response_mode"),
+            "response_raw": record.get("response_raw"),
+            "response_think": record.get("response_think"),
+            "response_final": record.get("response_final"),
             "log_prob_with_qa": None,
             "log_prob_without_qa": None,
             "reward": None,
@@ -413,6 +423,11 @@ def log_complete_step_data(
             "has_question": question is not None,
             "question": question,
             "user_response": extra_data.get("user_response"),
+            "response_role": extra_data.get("response_role"),
+            "response_mode": extra_data.get("response_mode"),
+            "response_raw": extra_data.get("response_raw"),
+            "response_think": extra_data.get("response_think"),
+            "response_final": extra_data.get("response_final"),
             "log_prob_with_qa": extra_data.get("log_prob_with_qa"),
             "log_prob_without_qa": extra_data.get("log_prob_without_qa"),
             "reward": extra_data.get("reward"),
